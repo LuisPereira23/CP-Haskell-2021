@@ -1,0 +1,61 @@
+myavg = cataList (split(either (const 1) (succ.p2.p2))(either (id) (p1.p2)))
+
+
+
+fL f = id -|- id >< f
+outL [a] = i1 a ; outL(a:l) = i2(a,l)
+intL = either singl cons
+cataL g = g . fL (cataL g) . outL
+
+alpha(a,(b,m)) = uncurry (/)(add((mul(b,m)),a),succ b)
+
+myavg = cataL(either (split id (const 1)) (split alpha (succ.(p2.p2))))
+
+
+beta = succ.(p2.p2)
+
+
+alpha :: (Fractional a, Enum a) => (a,(a,a)) -> a
+alpha(a,(aver,leng)) = (/) ((+) ((*) aver leng) a) (succ leng)
+
+
+testlen = cataLTree (either (const 1) add)
+
+
+beta(a,b) = (/) ((+) a b) 2
+
+myavgT = cataLTree(either (split id (const 1)) (split (beta) (add)))
+
+myavgT = cataLTree (split(either id beta) (either (const 1) add ))
+
+
+
+mylen = cataLTree (either (const 1) add)
+
+myavg = cataLTree (either id beta)
+
+bscataT i j = cataLTree (split (i . recLTree p1 )(j . recLTree p2))
+
+t = Fork (Leaf 1,Fork(Leaf 2,Leaf 3))
+
+
+myavg = cataLTree(either (split id (const 1)) (split beta  mylength)
+
+beta((a,b),(c,d)) = (/) ((+) ((*) a b) ((*) c d)) ((+) b d)
+
+mylength ((a,b),(c,d)) = (+) (b) (d)
+
+((*) a c)
+((*) b d)
+
+((+) ((*) a c) ((*) b d))
+
+((+) c d)
+
+(/) ((+) ((*) a c) ((*) b d)) ((+) c d)
+
+5 * 5
++
+3 * 10 
+/15
+
