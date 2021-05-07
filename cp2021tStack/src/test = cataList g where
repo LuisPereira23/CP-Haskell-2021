@@ -39,7 +39,7 @@ bscataT i j = cataLTree (split (i . recLTree p1 )(j . recLTree p2))
 t = Fork (Leaf 1,Fork(Leaf 2,Leaf 3))
 
 
-myavg = cataLTree(either (split id (const 1)) (split beta  mylength)
+myavg = cataLTree(either (split id (const 1)) (split beta  mylength))
 
 beta((a,b),(c,d)) = (/) ((+) ((*) a b) ((*) c d)) ((+) b d)
 
@@ -59,3 +59,258 @@ mylength ((a,b),(c,d)) = (+) (b) (d)
 3 * 10 
 /15
 
+
+loop (c,h) = (c+h,(*) 4)
+inic (c,h) = (1,1)
+prj (c,h) = c
+
+export PATH=/opt/texlive/2021/bin/x86_64-linux:$PATH
+export MANPATH=/opt/texlive/2021/texmf-dist/doc/man:$MANPATH
+export INFOPATH=/opt/texlive/2021/texmf-dist/doc/info:$INFOPATH
+
+((mul c h), (div cima baixo), (add 4 cima), (curry add 1 baixo))
+(1,1,2,2)
+c
+
+prj :: Fractional a => (a,b,c,d)-> a
+
+cat :: Fractional a => Integer -> Integer
+
+cat :: Integer -> Double
+
+
+loop(c,h,cima,baixo) = (( (*) c h), ( (/) cima baixo), ( (+) 4 cima), ( (+) 1 baixo))
+inic = (1,1,2,2)
+prj(c,h,cima,baixo) = c
+
+((div cima baixo),((*) cima next),((+) 1 next),((*) ((*) baixo (next(next)) (next))))
+
+
+baixo x two x next 
+
+a b c 
+
+(mul((mul(baixo,two)),next))
+
+(div cima baixo)
+
+(add(c,(div cima baixo)))
+
+(mul((mul(cima,d)),f))
+
+(mul(div cima baixo),c
+
+(mul(div cima baixo),c)
+
+(add(cima,f))
+
+(add(12,f))
+
+(add(baixo,d))
+
+(add(d,2))
+
+(div cima baixo)
+
+(mul(cima,next))
+
+(add(1,next))
+
+(mul((mul(cima,d)),f))
+
+(mul((mul(cima,d)),f))
+
+
+outExpAr a = i1 a
+outExpAr 
+
+out.in = id
+
+in = either (const X) (either N (either () (uncurry) ))
+
+
+\begin{spec}
+
+C n = (2n)!/((n+1)!*(n)!)
+C 0 = 1
+C(n+1) = cima n / baixo n
+
+cima n = (2n)!
+cima(n+1) = (2n)! * (2n+2) * (2n+1)
+cima 0 = 1
+cima(n+1) = cima n * d n * f n 
+
+d n = (2n+2)
+d(n+1) = (2n+2)+2
+d 0 = 2
+d(n+1) = 2 + d n
+
+f n = (2n+1)
+f(n+1) = (2n+1)+2
+f 0 = 1
+f(n+1) = 2 + f n
+
+baixo n = (n+1)!*(n!)
+baixo(n+1) = (n+1)!*(n!)*(n+2)*(n+1)
+baixo 0 = 1
+baixo(n+1) = baixo n * t n * next n
+
+t n = (n+2)
+t (n+1) = (n+2)+1
+t 0 = 2
+t(n+1) = 1 + t n
+
+next n = (n+1)
+next(n+1) = (n+1)+1
+next 0 = 1
+next(n+1) = 1 + next n
+ 
+\end{spec}
+
+
+outExpAr(Bin op a b) = Right(Right(Left (op a b)))
+
+
+outExpAr const a = Left a
+outExpAr(N a) = Right(Left a)
+outExpAr(Un a b) = Right(Right(Right(a,b)))
+outExpAr(Bin op a b) = Right(Right(Left(op,(a,b))))
+
+
+
+%
+\just\equiv{ def num_ops }
+%
+        |lcbr(
+    i1 = out.(const X)
+  )(
+    i2 = out.[N,ops]
+  )|
+%
+\just\equiv{ Fusão+ (20) }
+%
+        |lcbr(
+    i1 = out.(const X)
+  )(
+    i2 = [out.N,out.ops]
+  )|
+%
+\just\equiv{ Universal+ (17) }
+%
+        |lcbr(
+    i1 = out.(const X)
+  )(
+    i2.i1 = out.N
+  )(
+    i2.i1 = out.ops
+  )|
+%
+\just\equiv{ def ops }
+%
+        |lcbr(
+    i1 = out.(const X)
+  )(
+    i2.i1 = out.N
+  )(
+    i2.i1 = out.[bin,(uncurry Un)]
+  )|
+%
+\just\equiv{ Fusão+ (20) }
+%
+        |lcbr(
+    i1 = out.(const X)
+  )(
+    i2.i1 = out.N
+  )(
+    i2.i2 = [out.bin,out.(uncurry Un)]
+  )|
+%
+\just\equiv{ Universal+ (17) }
+%
+        |lcbr(
+    i1 = out.(const X)
+  )(
+    i2.i1 = out.N
+  )(
+    i2.i2.i1 = out.bin
+  )(
+    i2.i2.i2 = out.(uncurry Un)
+  )|
+%
+\just\equiv{ Igualdade Extensional (71) x 4 }
+%
+        |lcbr(
+    i1 a = (out.(const X)) a
+  )(
+    (i2.i1) a = (out.N) a
+  )(
+    (i2.i2.i1)(a,(b,c)) = (out.bin)(a,(b,c))
+  )(
+    (i2.i2.i2)(a,b) = (out.(uncurry Un))(a,b)
+  )|
+%
+\just\equiv{ Universal+ (17) }
+%
+        |lcbr(
+    i1 a = (out.(const X)) a
+  )(
+    (i2.i1) a = (out.N) a
+  )(
+    (i2.i2.i1)(a,(b,c)) = (out.bin)(a,(b,c))
+  )(
+    (i2.i2.i2)(a,b) = (out.(uncurry Un))(a,b)
+  )|
+%
+
+clean(Bin Product (N 0) _)= Left()
+
+baseExpAr f g h j k l z = f -|- (g -|- (h >< (j >< k) -|- l >< z))
+
+id -|-(id-|-(id><(Exp><Exp)+id><Exp))
+
+either a (either g3 (either g5 g6))
+
+bin(Sum,(a,b)) = (+) a b
+bin(Product,(a,b)) = (*) a b
+
+cataExpAr :: (Either () (Either b (Either (BinOp, (d, d)) (UnOp, d))) -> d) -> ExpAr b -> d
+
+g_eval_exp :: (Either () (Either b (Either (BinOp, (d, d)) (UnOp, d))) -> d)
+
+either (const X) (either na (either bin un))
+
+either g1 (either g2 (either (g3 f) (either (g4 f) )))
+
+outExpAr :: ExpAr a -> Either () (Either a (Either (BinOp, (ExpAr a, ExpAr a)) (UnOp, ExpAr a)))
+
+either (g1 a) (either g2 (either g3 (either g4 )))
+
+g_eval_exp = either g1 (either g2 (either g3 g4)) where
+                g1 = const
+                g2 a = const a
+                g3 (Sum, (e, d)) = const (e + d)
+                g3 (Product, (e, d)) = const (e * d)
+                g4 (Negate, expr) = const (-expr) 
+                g4 (E, expr) = const (Prelude.exp expr)
+
+
+
+g1 = const
+g2 a = a
+
+g4(op,(a,b)) = if op == Product then add(a,b) else mul(a,b)
+
+g5(op,a) = if op == Negate then -a else exp a
+
+soma(Sum,(a,b)) = add(a,b)
+produto(Product,(a,b)) = mul(a,b)
+
+negacao(Negate,x) = -x
+exponencial(E,x) = exp x
+
+g_eval_exp a = either g1 (either g2 (either g4 g5) )
+
+clean(Right (Right (Left (Sum, (0,b))))) = b
+clean(Right (Right (Left (Sum, (a,0))))) = a
+clean(Right (Right (Left (Product, (0,b))))) = b
+clean(Right (Right (Left (Product, (a,0))))) = a

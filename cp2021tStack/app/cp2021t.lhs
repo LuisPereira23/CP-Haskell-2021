@@ -127,9 +127,9 @@
 
 \begin{center}\large
 \begin{tabular}{ll}
-\textbf{Grupo} nr. & 999 (preencher)
+\textbf{Grupo} nr. & 38
 \\\hline
-a11111 & Nome1 (preencher)
+a77667 & Luis Manuel Pereira
 \\
 a22222 & Nome2 (preencher)
 \\
@@ -1017,16 +1017,165 @@ ad v = p2 . cataExpAr (ad_gen v)
 \end{code}
 Definir:
 
+\begin{eqnarray*}
+\start
+  |out.[(const X),num_ops] = id|
+%
+\just\equiv{ Fusão+ (20) }
+%
+  |[out.(const X),out.num_ops] = id|
+%
+\just\equiv{ Universal+ (17) }
+%
+        |lcbr(
+    id.i1 = out.(const X)
+  )(
+    id.i2 = out.num_ops
+  )|
+%
+\just\equiv{ Natural-id (1) x2 }
+%
+        |lcbr(
+    i1 = out.(const X)
+  )(
+    i2 = out.num_ops
+  )|
+%
+\just\equiv{ def num\_ops }
+%
+        |lcbr(
+    i1 = out.(const X)
+  )(
+    i2 = out.[N,ops]
+  )|
+%
+\just\equiv{ Fusão+ (20) }
+%
+        |lcbr(
+    i1 = out.(const X)
+  )(
+    i2 = [out.N,out.ops]
+  )|
+%
+\just\equiv{ Universal+ (17) }
+%
+        |lcbr(
+    i1 = out.(const X)
+  )(
+    i2.i1 = out.N
+  )(
+    i2.i1 = out.ops
+  )|
+%
+\just\equiv{ def ops }
+%
+        |lcbr(
+    i1 = out.(const X)
+  )(
+    i2.i1 = out.N
+  )(
+    i2.i1 = out.[bin,(uncurry Un)]
+  )|
+%
+\just\equiv{ Fusão+ (20) }
+%
+        |lcbr(
+    i1 = out.(const X)
+  )(
+    i2.i1 = out.N
+  )(
+    i2.i2 = [out.bin,out.(uncurry Un)]
+  )|
+%
+\just\equiv{ Universal+ (17) }
+%
+        |lcbr(
+    i1 = out.(const X)
+  )(
+    i2.i1 = out.N
+  )(
+    i2.i2.i1 = out.bin
+  )(
+    i2.i2.i2 = out.(uncurry Un)
+  )|
+%
+\just\equiv{ Igualdade Extensional (71) x 4 }
+%
+        |lcbr(
+    i1 a = (out.(const X)) a
+  )(
+    (i2.i1) a = (out.N) a
+  )(
+    (i2.i2.i1)(a,(b,c)) = (out.bin)(a,(b,c))
+  )(
+    (i2.i2.i2)(a,b) = (out.(uncurry Un))(a,b)
+  )|
+%
+\just\equiv{ Universal+ (17) }
+%
+        |lcbr(
+    i1 a = (out.(const X)) a
+  )(
+    (i2.i1) a = (out.N) a
+  )(
+    (i2.i2.i1)(a,(b,c)) = (out.bin)(a,(b,c))
+  )(
+    (i2.i2.i2)(a,b) = (out.(uncurry Un))(a,b)
+  )|
+%
+\just\equiv{ def-comp (72) }
+%
+        |lcbr(
+    i1 a = (out.(const X)) a
+  )(
+    (i2.i1) a = (out.N) a
+  )(
+    (i2.i2.i1)(a,(b,c)) = (out.bin)(a,(b,c))
+  )(
+    (i2.i2.i2)(a,b) = (out.(uncurry Un))(a,b)
+  )|
+%
+\qed
+\end{eqnarray*}
+
 \begin{code}
-outExpAr = undefined
+
+outExpAr X = Left ()
+outExpAr(N a) = Right(Left a)
+outExpAr(Un a b) = Right(Right(Right(a,b)))
+outExpAr(Bin op a b) = Right(Right(Left(op,(a,b))))
+
 ---
-recExpAr = undefined
+
+
+recExpAr g = baseExpAr id id id g g id g
+
 ---
-g_eval_exp = undefined
+
+g_eval_exp n (Left ()) = n
+g_eval_exp n (Right (Left a)) = a
+g_eval_exp n (Right (Right (Left (Sum, (a,b))))) = a + b
+g_eval_exp n (Right (Right (Left (Product, (a,b))))) = a * b
+g_eval_exp n (Right (Right (Right (Negate, a)))) = -a
+g_eval_exp n (Right (Right (Right (E, a)))) = expd a
+
 ---
-clean = undefined
+
+clean:: (Eq a,Num a) => ExpAr a -> Either() (Either a (Either (BinOp, (ExpAr a, ExpAr a)) (UnOp,ExpAr a)))
+
+
+clean(N a) = outExpAr(N a)
+clean(Bin Product (N a) (N 0) ) = outExpAr(N 0)
+clean(Bin Product (N 0) (N a) ) = outExpAr(N 0)
+clean(Bin Sum (N a) (N 0) ) = outExpAr(N a)
+clean(Bin Sum (N 0) (N a) ) = outExpAr(N a)
+clean(Un E (N 0)) = outExpAr(N 1)
+clean(Bin op a b) = outExpAr(Bin op a b)
+clean(Un op a) = outExpAr(Un op a)
+clean(X) = outExpAr(X)
 ---
-gopt = undefined
+gopt n = g_eval_exp n
+
 \end{code}
 
 \begin{code}
@@ -1040,14 +1189,57 @@ ad_gen = undefined
 \end{code}
 
 \subsection*{Problema 2}
+
+\begin{spec}
+
+C n = (2n)!/((n+1)!*(n)!)
+C 0 = 1
+C(n+1) = cima n / baixo n
+----
+cima n = (2n)!
+cima(n+1) = (2n)! * (2n+2) * (2n+1)
+cima 0 = 1
+cima(n+1) = cima n * d n * f n 
+----
+d n = (2n+2)
+d(n+1) = (2n+2)+2
+d 0 = 2
+d(n+1) = 2 + d n
+----
+f n = (2n+1)
+f(n+1) = (2n+1)+2
+f 0 = 1
+f(n+1) = 2 + f n
+----
+baixo n = (n+1)!*(n!)
+baixo(n+1) = (n+1)!*(n!)*(n+2)*(n+1)
+baixo 0 = 1
+baixo(n+1) = baixo n * t n * next n
+----
+t n = (n+2)
+t (n+1) = (n+2)+1
+t 0 = 2
+t(n+1) = 1 + t n
+----
+next n = (n+1)
+next(n+1) = (n+1)+1
+next 0 = 1
+next(n+1) = 1 + next n
+ 
+\end{spec}
+
 Definir
 \begin{code}
-loop = undefined
-inic = undefined
-prj = undefined
+loop(c,cima,baixo,t,next,d,f) = ((div cima baixo),(mul((mul(cima,d)),f)),(mul((mul(baixo,t)),next)),(add(t,1)),(add(next,1)),(add(d,2)),(add(f,2)))
+
+inic = (1,1,1,2,1,2,1)
+
+prj(c,cima,baixo,t,next,d,f) = div cima baixo
 \end{code}
 por forma a que
 \begin{code}
+
+
 cat = prj . (for loop inic)
 \end{code}
 seja a função pretendida.
@@ -1071,13 +1263,46 @@ hyloAlgForm = undefined
 
 \subsection*{Problema 4}
 
+
 Solução para listas não vazias:
+
+Diagramas Lista não vazia.
+
+Diagrama avg
+\begin{eqnarray*}
+    \xymatrix@@C=2cm{
+    A^+\ar[d]_{avg} & A+A\times A^+\ar[l]^{in=[single,cons]}\ar[d]^{id + id\times \langle avg,length \rangle}\\
+    \mathbb{N}_0 & A+A\times(\mathbb{N}_0\times\mathbb{N}_0)\ar[l]^(0.6){g[id,alpha]}\\
+    }
+\end{eqnarray*}
+
+diagrama length
+\begin{eqnarray*}
+    \xymatrix@@C=2cm{
+    A^+\ar[d]_{length} & A+A\times A^+\ar[l]^{in=[single,cons]}\ar[d]^{id + id\times \langle avg,length \rangle}\\
+    \mathbb{N}_0 & A+A\times(\mathbb{N}_0\times\mathbb{N}_0)\ar[l]^(0.6){g[\underline{1},succ\cdot\pi_2\cdot\pi_2]}\\
+    }
+\end{eqnarray*}
+
+
+\begin{eqnarray*}
+\start
+  |split avg length = cataL(split (either id alpha )(either (const 1) (succ. (p2.p2))))|
+%
+\just\equiv{ Lei da Troca (28) }
+%
+  |split avg length = cataL(either (split id (const 1)) (split alpha (succ.(p2.p2))))|
+%
+\qed
+\end{eqnarray*}
+
 \begin{code}
 avg :: [Double] -> Double
 avg = p1.avg_aux
 \end{code}
 
 \begin{code}
+
 fL f = id -|- id >< f
 outL [a] = i1 a ; outL(a:l) = i2(a,l)
 intL = either singl cons
@@ -1090,9 +1315,43 @@ avg_aux = cataL(either (split id (const 1)) (split alpha (succ.(p2.p2))))
 
 \end{code}
 Solução para árvores de tipo \LTree:
+
+Diagramas \LTree.
+
+Diagrama LTree avg
+\begin{eqnarray*}
+    \xymatrix@@C=2cm{
+    Ltree A\ar[d]_{avg} & A+(Ltree A)^2\ar[l]_{inLtree}\ar[d]^{id + \langle avg,length \rangle}\\
+    \mathbb{N}_0 & A+(\mathbb{N}_0\times\mathbb{N}_0)^2\ar[l]^(0.6){g[id,beta]}\\
+    }
+\end{eqnarray*}
+
+diagrama LTree length
+\begin{eqnarray*}
+    \xymatrix@@C=2cm{
+    Ltree A\ar[d]_{length} & A+(Ltree A)^2\ar[l]_{inLtree}\ar[d]^{id + \langle avg,length \rangle}\\
+    \mathbb{N}_0 & A+(\mathbb{N}_0\times\mathbb{N}_0)^2\ar[l]^(0.6){g[\underline{1},mylength]}\\
+    }
+\end{eqnarray*}
+
+
+\begin{eqnarray*}
+\start
+  |split avg length = cataLTree(split (either id beta) (either (const 1) mylength))|
+%
+\just\equiv{ Lei da Troca (28) }
+%
+  |split avg length = cataLTree(either (split id (const 1)) (split beta  mylength))|
+%
+\qed
+\end{eqnarray*}
+
 \begin{code}
 
+mylength :: Num a1 => ((a2, a1), (a3, a1)) -> a1
 mylength ((a,b),(c,d)) = (+) (b) (d)
+
+beta :: Fractional a => ((a, a), (a, a)) -> a
 beta((a,b),(c,d)) = (/) ((+) ((*) a b) ((*) c d)) ((+) b d)
 
 avgLTree :: Fractional a => LTree a -> a
