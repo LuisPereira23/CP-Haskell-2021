@@ -129,13 +129,13 @@
 \begin{tabular}{ll}
 \textbf{Grupo} nr. & 38
 \\\hline
-a77667 & Luis Manuel Pereira
+a77667 & Luís Manuel Pereira
 \\
-a22222 & Nome2 (preencher)
+a73855 & José Lopes Ramos
 \\
-a33333 & Nome3 (preencher)
+a82529 & Carlos Manuel Marques Afonso
 \\
-a44444 & Nome4 (preencher, se aplicável, ou apagar)
+a86617 & Gonçalo Pinto Nogueira
 \end{tabular}
 \end{center}
 
@@ -425,8 +425,8 @@ prop_double_negate a exp = eval_exp a exp .=?=. eval_exp a (Un Negate (Un Negate
     \begin{propriedade}
       A função |optimize_eval| respeita a semântica da função |eval|.
 \begin{code}
-prop_optimize_respects_semantics :: (Floating a, Real a) => a -> ExpAr a -> Bool
-prop_optimize_respects_semantics a exp = eval_exp a exp .=?=. optmize_eval a exp
+prop_optimize_respects_semantics :: RealFloat a => a -> ExpAr a -> Property
+prop_optimize_respects_semantics a exp = not_NaN(eval_exp a exp) ==> (eval_exp a exp .=?=. optmize_eval a exp)
 \end{code}
     \end{propriedade}
 
@@ -495,8 +495,14 @@ da derivada em vez de manipular a expressão original.
     \begin{propriedade}
        Calcular o valor da derivada num ponto |r| via |ad| é equivalente a calcular a derivada da expressão e avalia-la no ponto |r|.
 \begin{code}
-prop_congruent :: (Floating a, Real a) => a -> ExpAr a -> Bool
-prop_congruent a exp = ad a exp .=?=. eval_exp a (sd exp)
+
+not_NaN :: RealFloat a => a -> Bool
+not_NaN a = not (isNaN a)
+
+
+prop_congruent :: RealFloat a => a -> ExpAr a -> Property
+prop_congruent a exp = not_NaN(eval_exp a (sd exp))  ==> (ad a exp) .=?=.  (eval_exp a (sd exp)) 
+
 \end{code}
     \end{propriedade}
 \end{enumerate}
@@ -1012,13 +1018,17 @@ optmize_eval a = hyloExpAr (gopt a) clean
 sd :: Floating a => ExpAr a -> ExpAr a
 sd = p2 . cataExpAr sd_gen
 
-ad :: Floating a => a -> ExpAr a -> a
+ad :: (Floating a, Eq a) => a -> ExpAr a -> a
 ad v = p2 . cataExpAr (ad_gen v)
 \end{code}
 Definir:
 
 \begin{eqnarray*}
 \start
+|out.in = id|
+%
+\just\equiv{ def in }
+%
   |out.[(const X),num_ops] = id|
 %
 \just\equiv{ Fusão+ (20) }
@@ -1059,82 +1069,66 @@ Definir:
 %
 \just\equiv{ Universal+ (17) }
 %
-        |lcbr(
-    i1 = out.(const X)
-  )(
-    i2.i1 = out.N
-  )(
-    i2.i1 = out.ops
-  )|
+\left\{
+   \begin{array}{lll}
+      |i1 = out.(const X)|\\
+      |i2.i1 = out.N|\\
+      |i2.i2 = out.ops|
+  \end{array}
+\right.
 %
 \just\equiv{ def ops }
 %
-        |lcbr(
-    i1 = out.(const X)
-  )(
-    i2.i1 = out.N
-  )(
-    i2.i1 = out.[bin,(uncurry Un)]
-  )|
+\left\{
+   \begin{array}{lll}
+      |i1 = out.(const X)|\\
+      |i2.i1 = out.N|\\
+      |i2.i1 = out.[bin,(uncurry Un)]|
+  \end{array}
+\right.
 %
 \just\equiv{ Fusão+ (20) }
 %
-        |lcbr(
-    i1 = out.(const X)
-  )(
-    i2.i1 = out.N
-  )(
-    i2.i2 = [out.bin,out.(uncurry Un)]
-  )|
+\left\{
+   \begin{array}{lll}
+      |i1 = out.(const X)|\\
+      |i2.i1 = out.N|\\
+      |i2.i2 = [out.bin,out.(uncurry Un)]|
+  \end{array}
+\right.
 %
 \just\equiv{ Universal+ (17) }
 %
-        |lcbr(
-    i1 = out.(const X)
-  )(
-    i2.i1 = out.N
-  )(
-    i2.i2.i1 = out.bin
-  )(
-    i2.i2.i2 = out.(uncurry Un)
-  )|
+\left\{
+   \begin{array}{llll}
+      |i1 = out.(const X)|\\
+      |i2.i1 = out.N|\\
+      |i2.i2.i1 = out.bin|\\
+      |i2.i2.i2 = out.(uncurry Un)|
+  \end{array}
+\right.
 %
 \just\equiv{ Igualdade Extensional (71) x 4 }
 %
-        |lcbr(
-    i1 a = (out.(const X)) a
-  )(
-    (i2.i1) a = (out.N) a
-  )(
-    (i2.i2.i1)(a,(b,c)) = (out.bin)(a,(b,c))
-  )(
-    (i2.i2.i2)(a,b) = (out.(uncurry Un))(a,b)
-  )|
+\left\{
+   \begin{array}{llll}
+      |i1 a = (out.(const X)) a|\\
+      |(i2.i1) a = (out.N) a|\\
+      |(i2.i2.i1)(a,(b,c)) = (out.bin)(a,(b,c))|\\
+      |(i2.i2.i2)(a,b) = (out.(uncurry Un))(a,b)|
+  \end{array}
+\right.
 %
-\just\equiv{ Universal+ (17) }
+\just\equiv{ def-comp (72), uncurry (84)  }
 %
-        |lcbr(
-    i1 a = (out.(const X)) a
-  )(
-    (i2.i1) a = (out.N) a
-  )(
-    (i2.i2.i1)(a,(b,c)) = (out.bin)(a,(b,c))
-  )(
-    (i2.i2.i2)(a,b) = (out.(uncurry Un))(a,b)
-  )|
-%
-\just\equiv{ def-comp (72) }
-%
-        |lcbr(
-    i1 a = (out.(const X)) a
-  )(
-    (i2.i1) a = (out.N) a
-  )(
-    (i2.i2.i1)(a,(b,c)) = (out.bin)(a,(b,c))
-  )(
-    (i2.i2.i2)(a,b) = (out.(uncurry Un))(a,b)
-  )|
-%
+\left\{
+   \begin{array}{llll}
+      |i1 a = out (const X a)|\\
+      |i2 (i1 a) = out (N a)|\\
+      |i2 (i2 (i1 (a,(b,c)))) = out (bin(a,(b,c)))|\\
+      |i2 (i2 (i2 (a,b))) = out (Un a b)|
+  \end{array}
+\right.
 \qed
 \end{eqnarray*}
 
@@ -1151,6 +1145,16 @@ outExpAr(Bin op a b) = Right(Right(Left(op,(a,b))))
 recExpAr g = baseExpAr id id id g g id g
 
 ---
+\end{code}
+
+Diagrama g\_eval\_exp
+\begin{eqnarray*}
+    \xymatrix@@C=2cm{
+    Exp\ar[d]_{eval} & const X + (N+(bOP \times(Exp \times Exp)) + unOP \times Exp)\ar[l]^{in=[\underline{X},num_ops]}\ar[d]^{id + (id + (id \times(eval \times eval))+id \times eval)}\\
+    \mathbb{A} & 1+A+(bOP \times A^2 )+(unOP \times A)\ar[l]^(0.6){g\_eval\_exp}\\
+    }
+\end{eqnarray*}
+\begin{code}
 
 g_eval_exp n (Left ()) = n
 g_eval_exp n (Right (Left a)) = a
@@ -1165,10 +1169,12 @@ clean:: (Eq a,Num a) => ExpAr a -> Either() (Either a (Either (BinOp, (ExpAr a, 
 
 
 clean(N a) = outExpAr(N a)
-clean(Bin Product (N a) (N 0) ) = outExpAr(N 0)
-clean(Bin Product (N 0) (N a) ) = outExpAr(N 0)
-clean(Bin Sum (N a) (N 0) ) = outExpAr(N a)
-clean(Bin Sum (N 0) (N a) ) = outExpAr(N a)
+clean(Bin Product _ (N 0) ) = outExpAr(N 0)
+clean(Bin Product (N 0) _ ) = outExpAr(N 0)
+clean(Bin Product a (N 1) ) = outExpAr(a)
+clean(Bin Product (N 1) a ) = outExpAr(a)
+clean(Bin Sum a (N 0) ) = outExpAr(a)
+clean(Bin Sum (N 0) a ) = outExpAr(a)
 clean(Un E (N 0)) = outExpAr(N 1)
 clean(Bin op a b) = outExpAr(Bin op a b)
 clean(Un op a) = outExpAr(Un op a)
@@ -1179,13 +1185,43 @@ gopt n = g_eval_exp n
 \end{code}
 
 \begin{code}
+
+
+
 sd_gen :: Floating a =>
     Either () (Either a (Either (BinOp, ((ExpAr a, ExpAr a), (ExpAr a, ExpAr a))) (UnOp, (ExpAr a, ExpAr a)))) -> (ExpAr a, ExpAr a)
-sd_gen = undefined
+
+sd_gen(Right (Left a))   = (N a, N 0)
+
+sd_gen(Right (Right (Left (Sum, ((a,b),(c,d))))))  = (Bin Sum (a) (c), (Bin Sum b d) )
+
+sd_gen(Right (Right (Left (Product, ((a,b),(c,d))))))  = (Bin Product a c, (Bin Sum (Bin Product a d ) (Bin Product b c ) ) )
+
+sd_gen(Right (Right (Right (Negate, (a,b))))) = (Un Negate a , Un Negate b)
+
+sd_gen(Right (Right (Right (E, (a,b))))) = ((Un E a), Bin Product (Un E a) b )
+
+sd_gen(Left ())   = (X, N 1 )
+
 \end{code}
 
 \begin{code}
-ad_gen = undefined
+
+ad_gen :: (Floating  a, Eq a) =>
+    a -> Either () (Either a (Either (BinOp, ((ExpAr a,a), (ExpAr a,a))) (UnOp, (ExpAr a,a)))) -> (ExpAr a,a)
+
+ad_gen x (Right (Left a))   = (N a, 0)
+
+ad_gen x (Right (Right (Left (Sum, ((a,b),(c,d))))))  = (Bin Sum (a) (c), b+d )
+
+ad_gen x (Right (Right (Left (Product, ((a,b),(c,d))))))  = (Bin Product a c, d*(optmize_eval x a) + b*(optmize_eval x c) )
+
+ad_gen x (Right (Right (Right (Negate, (a,b))))) = (Un Negate a ,  (-b) )
+
+ad_gen x (Right (Right (Right (E, (a,b))))) = ((Un E a), (Prelude.exp (optmize_eval x a))*b  ) 
+
+ad_gen x (Left ())  = (X, 1)
+
 \end{code}
 
 \subsection*{Problema 2}
@@ -1248,17 +1284,45 @@ Apresentar de seguida a justificação da solução encontrada.
 
 \subsection*{Problema 3}
 
+O primeiro passo na resolução deste problema foi a leitura cuidada da documentação.
+De seguida o grupo procurou assumir calclLne como um cata morfismo de listas, para tal, teriamos de usar cataList.  Assumimos calcLine como \llparenthesis h \rrparenthesis$ e o seguinte diagrama representa o pretendido:\\
+\begin{eqnarray*}
+\centerline{\xymatrix@@C=2cm{
+   NPoint \ar[d]_-{cataList\ h}
+                \ar@@/^2pc/ [rr]^-{out}  & \qquad \cong
+&   1 + \mathbb{Q} \times NPoint \ar[d]^{id + id \times calcLine}
+                                     \ar@@/^2pc/[ll]^-{in}
+\\
+    NPoint -> OverTime NPoint &  & 1 + \mathbb{Q} \times (NPoint -> OverTime NPoint)\ar[ll]^-{h}
+}}
+\end{eqnarray*}
+
 \begin{code}
 calcLine :: NPoint -> (NPoint -> OverTime NPoint)
 calcLine = cataList h where
-   h = undefined
+                    h = either aux1 aux2
+                    aux1 _ _ = id nil
+                    aux2 (d , f ) l = case l of
+                                [] -> nil
+                                (x : xs) -> \z -> concat $ (sequenceA [singl . linear1d d x , f xs ]) z
 
+\end{code}
+De seguida revisitamos a teoria relativa à técnica de Divide and Conquer utilizada no trabalho com hilomorfismos e procuramos uma adaptação ao nosso desafio, atendendo a importância de init e tail.\\
+ 
+Assim para definirmos  os  anamorfismos e o catamorfismos avaliamos a situações iniciais, obtendo o anamorfismo. Sendo a sua saída um NPoint ou um par de listas de NPoint.\\
+
+Uma vez que o catamorfismo recebe o resultado da chamada recursiva tivemos que adaptar a utilização de calcLine para obtermos o resultado pretendido.
+
+\begin{code}
 deCasteljau :: [NPoint] -> OverTime NPoint
 deCasteljau = hyloAlgForm alg coalg where
-   coalg = undefined
-   alg = undefined
+   coalg [] = i1 ()
+   coalg [p] = i2 (i1 p)
+   coalg l = i2 (i2 (init l, tail l))
+   alg = either (const nil) (either const aux)
+   aux (p,q) = \pt -> (calcLine (p pt) (q pt)) pt
 
-hyloAlgForm = undefined
+hyloAlgForm g h = g . (id -|- (id -|- ((hyloAlgForm g h) >< (hyloAlgForm g h)))) . h
 \end{code}
 
 \subsection*{Problema 4}
@@ -1363,6 +1427,126 @@ avgLTree = p1.cataLTree gene where
 Inserir em baixo o código \Fsharp\ desenvolvido, entre \verb!\begin{verbatim}! e \verb!\end{verbatim}!:
 
 \begin{verbatim}
+// (1) Datatype definition -----------------------------------------------------
+
+type BTree<'a> = Empty | Node of 'a * (BTree<'a> * BTree<'a>)
+
+
+let inBTree x = either (konst Empty) Node x
+
+let outBTree x =
+     match x with
+     | Empty -> i1() 
+     | Node (a,(t1,t2)) -> i2(a,(t1,t2)) 
+
+// (2) Ana + cata + hylo -------------------------------------------------------
+
+
+let baseBTree f g x = (id -|- (f >< (g >< g))) x  
+
+let recBTree f = baseBTree id f         
+
+let rec cataBTree g = g << (recBTree (cataBTree g)) << outBTree 
+
+let rec anaBTree g = inBTree << (recBTree (anaBTree g) ) << g
+
+let hyloBTree a c = cataBTree a << anaBTree c
+
+
+// (3) Map ---------------------------------------------------------------------
+
+//instance Functor BTree
+//         where fmap f = cataBTree ( inBTree . baseBTree f id )
+let fmap f x = (cataBTree ( inBTree << baseBTree f id )) x 
+
+
+// (4) Examples ----------------------------------------------------------------
+
+// (4.1) Inversion (mirror) ----------------------------------------------------
+
+let invBTree x = cataBTree (inBTree << (id -|- (id >< swap))) x
+
+// (4.2) Counting --------------------------------------------------------------
+
+let countBTree x = cataBTree (either zero (succ << add << p2)) x
+
+
+// (4.3) Serialization ---------------------------------------------------------
+
+
+// (4.3) Serialization ---------------------------------------------------------
+
+let inord a = 
+     let join(x,(l,r))=l@[x]@r
+     in (either nil join) a
+
+let inordt x = cataBTree inord x                
+
+     
+let preord a = 
+          let f(x,(l,r))=x::l@r
+          in (either nil f) a
+
+let preordt x = cataBTree preord x
+
+     
+let postordt a =
+          let f(x,(l,r))=l@r@[x]
+          in cataBTree (either nil f) a
+
+
+
+// (4.4) QuickSort ------------------------------------------------------
+
+
+let rec part p l = 
+     match l with
+      | [] -> ([],[])
+      | h::t -> if p h then let (s,l) = part p t in (h::s,l) else let s,l = part p t in (s,h::l)          
+
+
+
+//let qsep l = 
+//     match l with
+//      | [] -> Left()
+//      | h::t -> let s,l = part (<h) t in Right (h,(s,l))
+
+
+//let qSort x = (hyloBTree inord qsep) x
+
+
+
+// (4.5) Traces ------------------------------------------------
+
+//let tunion(a,(l,r)) x = union (map a:: l) (map a:: r) x 
+
+//let traces x = cataBTree (either (konst [[]]) tunion) x
+
+
+ 
+// (4.6) Towers of Hanoi -------------------------------------------------------------
+
+let present x = inord x
+
+let strategy(d,l) = 
+     match l with
+      | 0 -> i1()
+      | n -> i2((n-1,d),((not d,n-1),(not d,n-1)))
+
+let hanoi x = hyloBTree present strategy x
+
+
+// (5) Depth and balancing (using mutual recursion) --------------------------
+
+
+let h(a,((b1,b2),(d1,d2))) = (b1 && b2 && abs(d1-d2)<=1,1+max d1 d2)
+let f((b1,d1),(b2,d2)) = ((b1,b2),(d1,d2))
+
+let baldepth x = cataBTree (either (konst(true,1)) (h<<(id><f))) x
+
+let balBTree x = (p1 << baldepth) x
+
+let depthBTree x = (p2 << baldepth) x
 \end{verbatim}
 
 %----------------- Fim do anexo com soluções dos alunos ------------------------%
