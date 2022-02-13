@@ -1,2 +1,2 @@
-# Advanced functional Programming
+# Advanced Functional Programming
 # Haskell
