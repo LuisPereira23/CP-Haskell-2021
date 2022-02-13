@@ -1,1 +1,2 @@
-# CP-2021
+# Advanced functional Programming
+# Haskell
